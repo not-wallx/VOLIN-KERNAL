@@ -1,12 +1,5 @@
-; ============================================================================
-; FILE: src/boot_header.asm
-; ============================================================================
-; Multiboot header for GRUB compatibility
-; Must be in the first 8KB of the kernel binary
-
 BITS 32
 
-; Multiboot constants
 MULTIBOOT_MAGIC         equ 0x1BADB002
 MULTIBOOT_PAGE_ALIGN    equ 1 << 0
 MULTIBOOT_MEMORY_INFO   equ 1 << 1

@@ -1,8 +1,3 @@
-; ============================================================================
-; FILE: src/vga.asm
-; ============================================================================
-; VGA text mode driver (80x25, color)
-
 BITS 32
 
 global vga_init
@@ -17,12 +12,11 @@ vga_width       dd 80
 vga_height      dd 25
 vga_row         dd 0
 vga_col         dd 0
-vga_color       db 0x0F     ; White on black
+vga_color       db 0x0F     
 
 section .text
 
 vga_init:
-    ; Clear screen and reset cursor
     call vga_clear
     mov dword [vga_row], 0
     mov dword [vga_col], 0
@@ -31,7 +25,7 @@ vga_init:
 vga_clear:
     mov edi, [vga_buffer]
     mov ecx, 80 * 25
-    mov ax, 0x0F20      ; Space with white on black
+    mov ax, 0x0F20    
 .loop:
     mov [edi], ax
     add edi, 2
@@ -43,20 +37,17 @@ vga_set_color:
     mov [vga_color], al
     ret
 
-; Put character at current cursor position
-; Parameter: character on stack
 vga_putc:
     push ebp
     mov ebp, esp
     push ebx
     push esi
     
-    mov al, [ebp + 8]   ; Get character
-    
-    ; Handle special characters
-    cmp al, 0x0A        ; Newline
+    mov al, [ebp + 8]  
+
+    cmp al, 0x0A       
     je .newline
-    cmp al, 0x08        ; Backspace
+    cmp al, 0x08        
     je .backspace
     jmp .putchar
     
@@ -70,7 +61,7 @@ vga_putc:
     je .done
     dec dword [vga_col]
     
-    ; Calculate position and put space
+    
     mov eax, [vga_row]
     mov ebx, [vga_width]
     mul ebx
@@ -83,35 +74,31 @@ vga_putc:
     jmp .done
     
 .putchar:
-    ; Calculate position: (row * width + col) * 2
+    
     mov eax, [vga_row]
     mov ebx, [vga_width]
     mul ebx
     add eax, [vga_col]
     
-    ; Write character to video memory
     mov edi, [vga_buffer]
     lea edi, [edi + eax * 2]
     mov ah, [vga_color]
     mov [edi], ax
     
-    ; Move cursor forward
     inc dword [vga_col]
     mov eax, [vga_col]
     cmp eax, [vga_width]
     jl .scroll_check
     
-    ; Wrap to next line
+
     mov dword [vga_col], 0
     inc dword [vga_row]
     
 .scroll_check:
-    ; Check if we need to scroll
     mov eax, [vga_row]
     cmp eax, [vga_height]
     jl .done
     
-    ; Scroll up
     call vga_scroll
     dec dword [vga_row]
     
@@ -122,14 +109,12 @@ vga_putc:
     ret
 
 vga_scroll:
-    ; Copy each line up one row
     mov esi, [vga_buffer]
-    add esi, 160        ; Skip first line
+    add esi, 160       
     mov edi, [vga_buffer]
-    mov ecx, 80 * 24    ; 24 lines
+    mov ecx, 80 * 24   
     rep movsw
     
-    ; Clear last line
     mov edi, [vga_buffer]
     add edi, 80 * 24 * 2
     mov ecx, 80
@@ -141,19 +126,18 @@ vga_scroll:
     
     ret
 
-; Print null-terminated string
-; Parameter: string address on stack
+
 vga_print:
     push ebp
     mov ebp, esp
     push ebx
     push esi
     
-    mov esi, [ebp + 8]  ; Get string address
+    mov esi, [ebp + 8] 
     
 .loop:
-    lodsb               ; Load byte from [ESI] into AL
-    test al, al         ; Check for null terminator
+    lodsb            
+    test al, al      
     jz .done
     
     push eax
